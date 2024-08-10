@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Math Quiz</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Math Quiz</h1>
+        <form method="post">
+            <div class="form-group">
+                <label for="username">Name:</label>
+                <input type="text" class="form-control" id="username" name="username" required>
+            </div>
+            <div class="form-group">
+                <label for="age">Age:</label>
+                <input type="number" class="form-control" id="age" name="age" required>
+            </div>
+            <div class="form-group">
+                <label for="operation">Choose Operation:</label>
+                <select class="form-control" id="operation" name="operation" required>
+                    <option value="addition">Addition</option>
+                    <option value="multiplication">Multiplication</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="difficulty">Choose Difficulty:</label>
+                <select class="form-control" id="difficulty" name="difficulty" required>
+                    <option value="1">Single-digit</option>
+                    <option value="2">Two-digit</option>
+                    <option value="3">Three-digit</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label for="num_questions">Number of Questions:</label>
+                <select class="form-control" id="num_questions" name="num_questions" required>
+                    <option value="1">1</option>
+                    <option value="5">5</option>
+                    <option value="10">10</option>
+                </select>
+            </div>
+            <button type="submit" class="btn btn-success">Start Quiz</button>
+        </form>
+    </div>
+</body>
+</html>

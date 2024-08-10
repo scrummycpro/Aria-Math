@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+    <title>Results</title>
+</head>
+<body>
+    <div class="container">
+        <h1>Quiz Results for {{ user[0] }}</h1>
+        <p>Age: {{ user[1] }}</p>
+        <h2>Recent Scores</h2>
+        <table class="table table-striped">
+            <thead>
+                <tr>
+                    <th>Student Name</th>
+                    <th>Operation</th>
+                    <th>Difficulty</th>
+                    <th>Number of Questions</th>
+                    <th>Score (%)</th>
+                    <th>Correct Answers</th>
+                    <th>Time Spent (s)</th>
+                    <th>Date</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for score in recent_scores %}
+                <tr>
+                    <td>{{ user[0] }}</td> <!-- Student Name -->
+                    <td>{{ score[0] }}</td>
+                    <td>{{ score[1] }}</td>
+                    <td>{{ score[2] }}</td>
+                    <td>{{ score[3] }}</td>
+                    <td>{{ score[6] }}</td> <!-- Correct Answers -->
+                    <td>{{ score[4] }}</td>
+                    <td>{{ score[5] }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        <a href="{{ url_for('home') }}" class="btn btn-primary">Home</a>
+        <a href="{{ url_for('export_csv', user_id=user[2]) }}" class="btn btn-success">Export to CSV</a> <!-- Use user_id here -->
+    </div>
+</body>
+</html>
