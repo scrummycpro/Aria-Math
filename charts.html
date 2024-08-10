@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>CSV to Charts with Data Table</title>
+        <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+        <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+        <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+        <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+        <script src="https://d3js.org/d3.v7.min.js"></script>
+        <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+        <style>
+            html, body {
+    height: 100%;
+    margin: 0;
+}
+
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+    font-family: Arial, sans-serif;
+    padding: 20px;
+    background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+}
+
+.container {
+    flex: 1;  /* This makes the container grow to fill available space */
+    display: flex;
+    flex-direction: column;
+    justify-content: center; /* Center content vertically if it's short */
+}
+
+#chart {
+    margin-top: 20px;
+}
+
+.bar {
+    fill: steelblue;
+}
+
+.box {
+    fill: none;
+    stroke: steelblue;
+    stroke-width: 2px;
+}
+
+.axis-label {
+    font-size: 12px;
+    font-weight: bold;
+}
+
+table {
+    margin-top: 20px;
+    border-collapse: collapse;
+    width: 100%;
+}
+
+table, th, td {
+    border: 1px solid #ddd;
+}
+
+th, td {
+    padding: 8px;
+    text-align: left;
+}
+
+th {
+    background-color: #f2f2f2;
+}
+
+footer {
+    flex-shrink: 0; /* Ensures footer stays at the bottom */
+    background-color: #333;
+    color: white;
+    text-align: center;
+    padding: 10px;
+    margin-top: auto;
+}
+        </style>
+    </head>
+    <body>
+
+        <!-- Bootstrap Navbar -->
+        <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
+            <a class="navbar-brand" href="#">Chart Generator</a>
+            <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ml-auto">
+                    <li class="nav-item active">
+                        <a class="nav-link" href="#">Home</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">About</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#">Contact</a>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    
+        <div class="container mt-5">
+            <h1 class="text-center">Upload CSV to Generate Charts with Data Table</h1>
+            <div class="row justify-content-center mt-4">
+                <div class="col-md-6">
+                    <input type="file" id="upload-csv" class="form-control" accept=".csv">
+                </div>
+            </div>
+            <div class="row justify-content-center mt-3">
+                <div class="col-md-6 text-center">
+                    <button id="download-chart" class="btn btn-primary">Download Chart</button>
+                </div>
+            </div>
+            <div class="row justify-content-center mt-3">
+                <div class="col-md-6 text-center">
+                    <button onclick="generateBarChart()" class="btn btn-secondary mr-2">Bar Chart</button>
+                    <button onclick="generateBoxPlot()" class="btn btn-secondary">Box Plot</button>
+                </div>
+            </div>
+            <div id="chart" class="mt-4"></div>
+            <div id="data-table" class="mt-4"></div>
+        </div>
+    
+        <!-- Bootstrap Footer -->
+        <footer class="bg-dark text-white mt-5 p-4 text-center">
+            &copy; 2024 Chart Generator. All Rights Reserved.
+        </footer>
+    
+    
+        <script>
+            let data;
+            let xColumn, yColumn;
+    
+            document.getElementById('upload-csv').addEventListener('change', function(event) {
+                const file = event.target.files[0];
+                if (file) {
+                    const reader = new FileReader();
+                    reader.onload = function(e) {
+                        data = d3.csvParse(e.target.result);
+                        
+                        if (data.length === 0) {
+                            alert('No data found in the CSV.');
+                            return;
+                        }
+                        
+                        xColumn = data.columns[0];
+                        yColumn = 'Score (%)';
+    
+                        processTimeSeriesData(data, xColumn, yColumn);
+                    };
+                    reader.readAsText(file);
+                }
+            });
+    
+            function processTimeSeriesData(data, xColumn, yColumn) {
+                const isDate = d3.timeParse('%Y-%m-%d %H:%M:%S.%L');
+                data.forEach(d => {
+                    if (xColumn.includes('Date')) {
+                        d[xColumn] = isDate(d[xColumn]);
+                    }
+                    d[yColumn] = +d[yColumn];
+                });
+    
+                generateBarChart();
+                generateDataTable();
+            }
+    
+            function generateBarChart() {
+                d3.select("#chart").selectAll("*").remove();
+    
+                const svg = d3.select("#chart").append("svg")
+                    .attr("width", 1000)
+                    .attr("height", 500)
+                    .attr("id", "svg-chart");
+    
+                const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+                const width = +svg.attr("width") - margin.left - margin.right;
+                const height = +svg.attr("height") - margin.top - margin.bottom;
+    
+                const g = svg.append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+                const x = d3.scaleBand()
+                    .rangeRound([0, width])
+                    .padding(0.1)
+                    .domain(data.map(d => d[xColumn]));
+    
+                const y = d3.scaleLinear()
+                    .rangeRound([height, 0])
+                    .domain([0, d3.max(data, d => d[yColumn])]);
+    
+                g.append("g")
+                    .attr("class", "axis axis--x")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(x))
+                    .append("text")
+                    .attr("class", "axis-label")
+                    .attr("x", width / 2)
+                    .attr("y", margin.bottom - 10)
+                    .attr("text-anchor", "middle")
+                    .text(xColumn);
+    
+                g.append("g")
+                    .attr("class", "axis axis--y")
+                    .call(d3.axisLeft(y).ticks(10))
+                    .append("text")
+                    .attr("class", "axis-label")
+                    .attr("x", -margin.left)
+                    .attr("y", -10)
+                    .attr("text-anchor", "middle")
+                    .text(yColumn);
+    
+                g.selectAll(".bar")
+                    .data(data)
+                    .enter().append("rect")
+                    .attr("class", "bar")
+                    .attr("x", d => x(d[xColumn]))
+                    .attr("y", d => y(d[yColumn]))
+                    .attr("width", x.bandwidth())
+                    .attr("height", d => height - y(d[yColumn]));
+            }
+    
+            function generateBoxPlot() {
+                d3.select("#chart").selectAll("*").remove();
+    
+                const svg = d3.select("#chart").append("svg")
+                    .attr("width", 1000)
+                    .attr("height", 500)
+                    .attr("id", "svg-chart");
+    
+                const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+                const width = +svg.attr("width") - margin.left - margin.right;
+                const height = +svg.attr("height") - margin.top - margin.bottom;
+    
+                const g = svg.append("g")
+                    .attr("transform", `translate(${margin.left},${margin.top})`);
+    
+                const x = d3.scaleBand()
+                    .range([0, width])
+                    .domain(["Box Plot"]);
+    
+                const y = d3.scaleLinear()
+                    .range([height, 0])
+                    .domain([d3.min(data, d => d[yColumn]), d3.max(data, d => d[yColumn])]);
+    
+                g.append("g")
+                    .attr("class", "axis axis--x")
+                    .attr("transform", `translate(0,${height})`)
+                    .call(d3.axisBottom(x))
+                    .append("text")
+                    .attr("class", "axis-label")
+                    .attr("x", width / 2)
+                    .attr("y", margin.bottom - 10)
+                    .attr("text-anchor", "middle")
+                    .text("Distribution");
+    
+                g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y).ticks(10))
+                .append("text")
+                .attr("class", "axis-label")
+                .attr("x", -margin.left)
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .text(yColumn);
+
+            // Compute statistics for the box plot
+            const q1 = d3.quantile(data.map(d => d[yColumn]).sort(d3.ascending), 0.25);
+            const median = d3.quantile(data.map(d => d[yColumn]).sort(d3.ascending), 0.5);
+            const q3 = d3.quantile(data.map(d => d[yColumn]).sort(d3.ascending), 0.75);
+            const interQuantileRange = q3 - q1;
+            const min = d3.min(data, d => d[yColumn]);
+            const max = d3.max(data, d => d[yColumn]);
+
+            // Draw box
+            g.append("rect")
+                .attr("class", "box")
+                .attr("x", x("Box Plot") + x.bandwidth() / 4)
+                .attr("y", y(q3))
+                .attr("width", x.bandwidth() / 2)
+                .attr("height", y(q1) - y(q3));
+
+            // Draw median line
+            g.append("line")
+                .attr("class", "box")
+                .attr("x1", x("Box Plot") + x.bandwidth() / 4)
+                .attr("x2", x("Box Plot") + 3 * x.bandwidth() / 4)
+                .attr("y1", y(median))
+                .attr("y2", y(median));
+
+            // Draw min line
+            g.append("line")
+                .attr("class", "box")
+                .attr("x1", x("Box Plot") + x.bandwidth() / 2)
+                .attr("x2", x("Box Plot") + x.bandwidth() / 2)
+                .attr("y1", y(min))
+                .attr("y2", y(q1));
+
+            // Draw max line
+            g.append("line")
+                .attr("class", "box")
+                .attr("x1", x("Box Plot") + x.bandwidth() / 2)
+                .attr("x2", x("Box Plot") + x.bandwidth() / 2)
+                .attr("y1", y(max))
+                .attr("y2", y(q3));
+
+            // Draw min whisker
+            g.append("line")
+                .attr("class", "box")
+                .attr("x1", x("Box Plot") + x.bandwidth() / 4)
+                .attr("x2", x("Box Plot") + 3 * x.bandwidth() / 4)
+                .attr("y1", y(min))
+                .attr("y2", y(min));
+
+            // Draw max whisker
+            g.append("line")
+                .attr("class", "box")
+                .attr("x1", x("Box Plot") + x.bandwidth() / 4)
+                .attr("x2", x("Box Plot") + 3 * x.bandwidth() / 4)
+                .attr("y1", y(max))
+                .attr("y2", y(max));
+        }
+
+        function generateDataTable() {
+            d3.select("#data-table").selectAll("*").remove(); // Clear previous table
+
+            const table = d3.select("#data-table").append("table").attr("class", "table table-striped");
+            const thead = table.append("thead");
+            const tbody = table.append("tbody");
+
+            // Append the header row
+            thead.append("tr")
+                .selectAll("th")
+                .data([xColumn, yColumn])
+                .enter()
+                .append("th")
+                .text(d => d);
+
+            // Create a row for each object in the data
+            const rows = tbody.selectAll("tr")
+                .data(data)
+                .enter()
+                .append("tr");
+
+            // Create a cell in each row for each column
+            rows.selectAll("td")
+                .data(d => [d[xColumn], d[yColumn]])
+                .enter()
+                .append("td")
+                .text(d => d);
+        }
+
+        document.getElementById('download-chart').addEventListener('click', function() {
+            const svg = document.getElementById("svg-chart");
+            const serializer = new XMLSerializer();
+            const svgBlob = new Blob([serializer.serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = svg.width.baseVal.value;
+                canvas.height = svg.height.baseVal.value;
+                const context = canvas.getContext("2d");
+                context.drawImage(img, 0, 0);
+
+                canvas.toBlob(function(blob) {
+                    saveAs(blob, "chart.png");
+                    URL.revokeObjectURL(url);
+                }, "image/png");
+            };
+
+            img.src = url;
+        });
+    </script>
+</body>
+</html>
+   
+    
+</html>

@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CSV to Bar Chart with Data Table</title>
+    <script src="https://d3js.org/d3.v7.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            padding: 20px;
+            background: linear-gradient(to right, #f0f0f0, #e0e0e0);
+        }
+        #chart {
+            margin-top: 20px;
+        }
+        .bar {
+            fill: steelblue;
+        }
+        .axis-label {
+            font-size: 12px;
+            font-weight: bold;
+        }
+        table {
+            margin-top: 20px;
+            border-collapse: collapse;
+            width: 100%;
+        }
+        table, th, td {
+            border: 1px solid #ddd;
+        }
+        th, td {
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: #f2f2f2;
+        }
+        #download-chart {
+            margin-top: 10px;
+            padding: 10px 20px;
+            font-size: 16px;
+            background-color: #007bff;
+            color: white;
+            border: none;
+            cursor: pointer;
+        }
+        #download-chart:hover {
+            background-color: #0056b3;
+        }
+    </style>
+</head>
+<body>
+
+    <h1>Upload CSV to Generate Bar Chart with Data Table</h1>
+    <input type="file" id="upload-csv" accept=".csv">
+    <button id="download-chart">Download Chart</button>
+    <div id="chart"></div>
+    <div id="data-table"></div>
+
+    <script>
+        document.getElementById('upload-csv').addEventListener('change', function(event) {
+            const file = event.target.files[0];
+            if (file) {
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    const data = d3.csvParse(e.target.result);
+                    
+                    // Check if data contains necessary columns
+                    if (data.length === 0) {
+                        alert('No data found in the CSV.');
+                        return;
+                    }
+                    
+                    // Use the first column for x-axis and 'Score (%)' for y-axis
+                    const xColumn = data.columns[0];
+                    const yColumn = 'Score (%)';
+
+                    processTimeSeriesData(data, xColumn, yColumn);
+                };
+                reader.readAsText(file);
+            }
+        });
+
+        function processTimeSeriesData(data, xColumn, yColumn) {
+            // Handle data parsing and transformation
+            const isDate = d3.timeParse('%Y-%m-%d %H:%M:%S.%L');
+            data.forEach(d => {
+                if (xColumn.includes('Date')) {
+                    d[xColumn] = isDate(d[xColumn]);
+                }
+                d[yColumn] = +d[yColumn];
+            });
+
+            generateBarChart(data, xColumn, yColumn);
+            generateDataTable(data, xColumn, yColumn);
+        }
+
+        function generateBarChart(data, xColumn, yColumn) {
+            d3.select("#chart").selectAll("*").remove(); // Clear previous chart
+
+            const svg = d3.select("#chart").append("svg")
+                .attr("width", 1000) // Adjust width if necessary
+                .attr("height", 500) // Adjust height if necessary
+                .attr("id", "svg-chart");
+
+            const margin = { top: 20, right: 30, bottom: 50, left: 60 };
+            const width = +svg.attr("width") - margin.left - margin.right;
+            const height = +svg.attr("height") - margin.top - margin.bottom;
+
+            const g = svg.append("g")
+                .attr("transform", `translate(${margin.left},${margin.top})`);
+
+            const x = d3.scaleBand()
+                .rangeRound([0, width])
+                .padding(0.1)
+                .domain(data.map((d, i) => i)); // Use index for x-axis
+
+            const y = d3.scaleLinear()
+                .rangeRound([height, 0])
+                .domain([0, d3.max(data, d => d[yColumn])]);
+
+            g.append("g")
+                .attr("class", "axis axis--x")
+                .attr("transform", `translate(0,${height})`)
+                .call(d3.axisBottom(x).tickFormat((d, i) => data[i][xColumn]))
+                .append("text")
+                .attr("class", "axis-label")
+                .attr("x", width / 2)
+                .attr("y", margin.bottom - 10)
+                .attr("text-anchor", "middle")
+                .text(xColumn);
+
+            g.append("g")
+                .attr("class", "axis axis--y")
+                .call(d3.axisLeft(y).ticks(10))
+                .append("text")
+                .attr("class", "axis-label")
+                .attr("x", -margin.left)
+                .attr("y", -10)
+                .attr("text-anchor", "middle")
+                .text(yColumn);
+
+            g.selectAll(".bar")
+                .data(data)
+                .enter().append("rect")
+                .attr("class", "bar")
+                .attr("x", (d, i) => x(i))
+                .attr("y", d => y(d[yColumn]))
+                .attr("width", x.bandwidth())
+                .attr("height", d => height - y(d[yColumn]));
+        }
+
+        function generateDataTable(data, xColumn, yColumn) {
+            d3.select("#data-table").selectAll("*").remove(); // Clear previous table
+
+            const table = d3.select("#data-table").append("table");
+            const thead = table.append("thead");
+            const tbody = table.append("tbody");
+
+            // Append the header row
+            thead.append("tr")
+                .selectAll("th")
+                .data([xColumn, yColumn])
+                .enter()
+                .append("th")
+                .text(d => d);
+
+            // Create a row for each object in the data
+            const rows = tbody.selectAll("tr")
+                .data(data)
+                .enter()
+                .append("tr");
+
+            // Create a cell in each row for each column
+            rows.selectAll("td")
+                .data(d => [d[xColumn], d[yColumn]])
+                .enter()
+                .append("td")
+                .text(d => d);
+        }
+
+        document.getElementById('download-chart').addEventListener('click', function() {
+            const svg = document.getElementById("svg-chart");
+            const serializer = new XMLSerializer();
+            const svgBlob = new Blob([serializer.serializeToString(svg)], { type: "image/svg+xml;charset=utf-8" });
+            const url = URL.createObjectURL(svgBlob);
+            const img = new Image();
+
+            img.onload = function() {
+                const canvas = document.createElement("canvas");
+                canvas.width = svg.width.baseVal.value;
+                canvas.height = svg.height.baseVal.value;
+                const context = canvas.getContext("2d");
+                context.drawImage(img, 0, 0);
+
+                canvas.toBlob(function(blob) {
+                    saveAs(blob, "chart.png");
+                    URL.revokeObjectURL(url);
+                }, "image/png");
+            };
+
+            img.src = url;
+        });
+    </script>
+</body>
+</html>
