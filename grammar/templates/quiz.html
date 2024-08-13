@@ -1,0 +1,73 @@
+<!-- quiz.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NLTK Quiz</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('index') }}">Quiz App</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('start_quiz') }}">Start Quiz</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('recent_scores') }}">Recent Scores</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+    <h1 class="mt-5">Identify the Part of Speech</h1>
+
+    {% if show_results %}
+        <h3>Your Score: {{ final_score }}%</h3>
+        <hr>
+        {% for result in results %}
+            <p>Word: <strong>{{ result[0] }}</strong></p>
+            <p>Your Answer: <strong>{{ result[1] }}</strong></p>
+            {% if not result[3] %}
+                <p class="text-danger">Correct Answer: <strong>{{ result[2] }}</strong></p>
+            {% endif %}
+            <hr>
+        {% endfor %}
+        <a href="{{ url_for('start_quiz') }}" class="btn btn-primary">Try Again</a>
+    {% else %}
+        <form method="POST">
+            <input type="hidden" name="start_time" value="{{ start_time }}">
+            {% for i in range(num_questions) %}
+            <div class="form-group">
+                <h4>Sentence {{ i+1 }}:</h4>
+                <p>{{ quiz_data[i][0] }}</p>
+                <div class="form-group">
+                    <label>Identify the part of speech for the word: <strong>{{ quiz_data[i][1][0] }}</strong></label>
+                    <input type="hidden" name="word_{{ i }}" value="{{ quiz_data[i][1][0] }}">
+                    <input type="hidden" name="correct_pos_{{ i }}" value="{{ quiz_data[i][1][1] }}">
+                    <select class="form-control" name="pos_{{ i }}">
+                        <option value="NN">Noun</option>
+                        <option value="VB">Verb</option>
+                        <option value="JJ">Adjective</option>
+                        <option value="RB">Adverb</option>
+                        <option value="PRP">Pronoun</option>
+                        <option value="IN">Preposition</option>
+                        <option value="CC">Conjunction</option>
+                        <option value="DT">Determiner</option>
+                        <option value="None">None</option>
+                    </select>
+                </div>
+            </div>
+            <hr>
+            {% endfor %}
+            <button type="submit" class="btn btn-primary">Submit Quiz</button>
+        </form>
+    {% endif %}
+</div>
+</body>
+</html>

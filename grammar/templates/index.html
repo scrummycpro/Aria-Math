@@ -1,0 +1,48 @@
+<!-- index.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Parts of Speech - Quiz App</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <nav class="navbar navbar-expand-lg navbar-light bg-light">
+        <a class="navbar-brand" href="{{ url_for('index') }}">Quiz App</a>
+        <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarNav" aria-controls="navbarNav" aria-expanded="false" aria-label="Toggle navigation">
+            <span class="navbar-toggler-icon"></span>
+        </button>
+        <div class="collapse navbar-collapse" id="navbarNav">
+            <ul class="navbar-nav">
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('start_quiz') }}">Start Quiz</a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ url_for('recent_scores') }}">Recent Scores</a>
+                </li>
+            </ul>
+        </div>
+    </nav>
+
+    <h1 class="mt-5">Parts of Speech</h1>
+    <p>Understanding the different parts of speech is essential for identifying how words function in a sentence. Here are some common parts of speech with examples:</p>
+
+    <ul>
+        <li><strong>Noun (NN):</strong> A person, place, thing, or idea. Example: <em>dog</em>, <em>city</em>, <em>happiness</em>.</li>
+        <li><strong>Verb (VB):</strong> An action or state of being. Example: <em>run</em>, <em>is</em>, <em>seem</em>.</li>
+        <li><strong>Adjective (JJ):</strong> Describes or modifies a noun. Example: <em>blue</em>, <em>quick</em>, <em>happy</em>.</li>
+        <li><strong>Adverb (RB):</strong> Modifies a verb, adjective, or other adverb. Example: <em>quickly</em>, <em>very</em>, <em>well</em>.</li>
+        <li><strong>Pronoun (PRP):</strong> Replaces a noun. Example: <em>he</em>, <em>they</em>, <em>it</em>.</li>
+        <li><strong>Preposition (IN):</strong> Shows the relationship between a noun (or pronoun) and another word in the sentence. Example: <em>in</em>, <em>on</em>, <em>before</em>.</li>
+        <li><strong>Conjunction (CC):</strong> Connects words, phrases, or clauses. Example: <em>and</em>, <em>but</em>, <em>or</em>.</li>
+        <li><strong>Determiner (DT):</strong> Introduces a noun. Example: <em>the</em>, <em>a</em>, <em>this</em>.</li>
+    </ul>
+
+    <p>When taking the quiz, you will be asked to identify the correct part of speech for selected words in sentences.</p>
+
+    <a href="{{ url_for('start_quiz') }}" class="btn btn-primary mt-3">Start Quiz</a>
+</div>
+</body>
+</html>

@@ -1,0 +1,19 @@
+<!-- result.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Result</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body>
+<div class="container">
+    <h1 class="mt-5">Quiz Result</h1>
+    <p>Name: {{ name }}</p>
+    <p>Score: {{ score }}%</p>
+    <p>Time Spent: {{ time_spent }} seconds</p>
+    <a href="{{ url_for('start_quiz') }}" class="btn btn-primary">Take another quiz</a>
+</div>
+</body>
+</html>
